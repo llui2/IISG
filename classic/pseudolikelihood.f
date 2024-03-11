@@ -149,13 +149,10 @@ C     INITIAL FICTICIOUS TEMPERATURE
       TEMP_F = -LOG(0.5d0*(1+TANH(1.D0/TEMP)))/z
       TF_STEP = TEMP_F/TAU
 C***********************************************************************
-C     INITIAL RANODM GRAPH (THE SAME AS THE ORIGINAL ONE)
-      CALL setr1279(SEED)
-      CALL IRG(N,z,NBR,INBR,JJ)
-C     INITIAL RANDOM COUPLINGS
-      CALL setr1279(SEED)
-      CALL RCA(N,p,NBR,INBR,JJ)
-C***********************************************************************
+C     INITIAL RANODM GRAPH
+      NBR = NBR_0
+      INBR = INBR_0
+      JJ = JJ_0
 C     SHUFFLE THE GRAPH
       CALL SHUFFLE(N,M,NBR,INBR,JJ)
 C***********************************************************************

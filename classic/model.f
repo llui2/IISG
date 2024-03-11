@@ -74,7 +74,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C     RANDOM ERDÖS-RÉNYI GRAPH WITHOUT COUPLINGS GENERATOR
       SUBROUTINE IRG(N,z,NBR,INBR,JJ) ! Initial Random Graph
-C     THIS SUBROUTINE GENERATES A RANDOM ERDÖS-RÉNYI GRAPH p = z/(N-1) 
+C     THIS SUBROUTINE GENERATES A RANDOM ERDÖS-RÉNYI GRAPH WITH p = z/(N-1) 
 C     (THIS p IS NOT THE SAME AS THE p IN THE COUPLING ASSIGNMENT!)
 C     AND SAVES IT IN THE NBR, INBR AND JJ ARRAYS.
 
@@ -179,6 +179,7 @@ C     THIS SUBROUTINE SHUFFLES THE COUPLINGS OF THE GRAPH
       TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR_0(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ_0(:)
       REAL*8 g
+      INTEGER iter
 
       EXTERNAL r1279
 
@@ -209,18 +210,20 @@ C     THIS SUBROUTINE SHUFFLES THE COUPLINGS OF THE GRAPH
 
       g = GAMMAA(N,M,NBR,JJ,NBR_0,JJ_0)
 
-      DO WHILE (g.LT.0.5)
+      iter = 0 ! ITERATION COUNTER TO AVOID INFINITE SHUFFLING
+      DO WHILE ((g.LT.0.8).OR.(iter.LT.1e5))
       change = .FALSE.
       DO WHILE (change.EQV..FALSE.)
-!       CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
-!      .              i1,i2,i3,i4)
-      CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+      CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
      .              i1,i2,i3,i4)
+!       CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+!      .              i1,i2,i3,i4)
       END DO
       NBR = newNBR
       INBR = newINBR
       JJ = newJJ
       g = GAMMAA(N,M,newNBR,newJJ,NBR_0,JJ_0)
+      iter = iter + 1
       END DO
 
       RETURN
@@ -635,10 +638,10 @@ C     T' IS THE FICTICIOUS TEMPERATURE
 
 C     RANDOM PAIRWISE COUPLING CHANGE
       DO WHILE (change.EQV..FALSE.)
-!       CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
-!      .              i1,i2,i3,i4)
-      CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+      CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
      .              i1,i2,i3,i4)
+!       CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+!      .              i1,i2,i3,i4)
       END DO
 
 C     CALCULATE newLAMBDA
