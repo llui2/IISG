@@ -46,4 +46,4 @@ gfortran performance.o model.o r1279.o ran2.o -o performance.out
 ./performance.out
 
 # Finally, we copy back all important output to the working directory
-scp -r results nodo00:$SGE_O_WORKDIR/results-$JOB_NAME
+scp -r results $SGE_O_WORKDIR/results-$JOB_NAME
