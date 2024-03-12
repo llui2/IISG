@@ -64,6 +64,7 @@ C-----(DUMMY)-------------------------------------------------
       INTEGER, ALLOCATABLE:: LAMBDA(:,:,:), SIGMA(:,:,:)
       REAL*8, ALLOCATABLE:: FUNCT(:,:,:)
       INTEGER zmax
+      INTEGER M_i ! node i degree
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       INTEGER SC !NOT USED IN THIS PROGRAM
       INTEGER MCINI !NOT USED IN THIS PROGRAM
@@ -78,7 +79,6 @@ C***********************************************************************
 C     READ SIMULATION VARIABLES FROM INPUT FILE
       CALL READ_INPUT(N,z,R,TEMP_SIZE,TEMP_LIST,H_SIZE,H_LIST,
      . p_SIZE,p_LIST,C,MCINI,NSEEDS,SC,zip_size,TAU)
-      M = z*N/2
       zmax = N-1
 C     ALLOCATION
       ALLOCATE(decimal(1:N/zip_size))
@@ -119,11 +119,22 @@ C***********************************************************************
 C     FOR ALL SEEDS
       DO SEED = SEEDini,SEEDini+NSEEDS-1
       WRITE(str4,'(i3)') SEED
-      CALL setr1279(SEED)
 
 C***********************************************************************
-C     ORIGINAL RANDOM SYSTEM (GRAPH+COUPLINGS)
-      CALL IRS(N,M,p,NBR_0,INBR_0,JJ_0)
+C     INITIAL RANODM GRAPH (THE SAME AS THE ORIGINAL ONE)
+      CALL setr1279(SEED)
+      CALL IRG(N,z,NBR_0,INBR_0,JJ_0)
+C     INITIAL RANDOM COUPLINGS
+      CALL setr1279(SEED)
+      CALL RCA(N,p,NBR_0,INBR_0,JJ_0)
+C***********************************************************************
+C     COMPUTE THE NUMBER OF EDGES OF THE GRAPH
+      M = 0
+      DO i = 1, N
+            M_i = SIZE(NBR_0(i)%v)
+            M = M + M_i
+      END DO
+      M = M/2
 C***********************************************************************
 C     READ THE SAMPLE
       OPEN(UNIT=1,FILE='results/sample/T'//str1//'_Γ'//str2//
@@ -142,15 +153,12 @@ C     INITIAL FICTICIOUS TEMPERATURE
       TEMP_F = -LOG(0.5d0*(1+TANH(1.D0/TEMP)))/z
       TF_STEP = TEMP_F/TAU
 C***********************************************************************
-C     INITIAL RANDOM SYSTEM (GRAPH+COUPLINGS)
-      CALL setr1279(999)
-      CALL IRS(N,M,p,NBR,INBR,JJ)
-C     INITIAL RANODM GRAPH (THE SAME AS THE ORIGINAL ONE)
-      ! CALL setr1279(SEED)
-      ! CALL IRG(N,M,NBR,INBR,JJ)
-C     INITIAL RANDOM COUPLINGS
-      ! CALL setr1279(999)
-      ! CALL RCA(N,M,p,NBR,INBR,JJ)
+C     INITIAL RANODM GRAPH
+      NBR = NBR_0
+      INBR = INBR_0
+      JJ = JJ_0
+C     SHUFFLE THE GRAPH
+      CALL SHUFFLE(N,M,NBR,INBR,JJ)
 C***********************************************************************
       CALL CLASS_LAMBDA(C,R,N,D,NBR,JJ,LAMBDA)
       CALL CLASS_SIGMA(C,R,N,D,SIGMA)

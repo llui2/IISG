@@ -117,10 +117,9 @@ C     CREATE DIRECTORY TO SAVE THE GRAPHS AND COUPLINGS
 C     FOR ALL SEEDS
       DO SEED = SEEDini,SEEDini+NSEEDS-1
       WRITE(str4,'(i3)') SEED
-      CALL setr1279(SEED)
 
 C***********************************************************************
-C     INITIAL RANODM GRAPH (THE SAME AS THE ORIGINAL ONE)
+C     INITIAL RANDOM GRAPH
       CALL setr1279(SEED)
       CALL IRG(N,z,NBR,INBR,JJ)
 C     INITIAL RANDOM COUPLINGS

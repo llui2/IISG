@@ -5,7 +5,7 @@ Temp="1.00 1.20 1.40 1.60 1.80 2.00 2.20 2.40 2.60 2.80 3.00 3.20 3.40 3.60 3.80
 
 H=$(sed -n '10p' input.txt)
 
-jobfile="job1.sh"
+jobfile="job2.sh"
 
 for j in $Temp
 do

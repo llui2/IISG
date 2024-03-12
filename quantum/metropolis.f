@@ -9,8 +9,8 @@ C     FORTRAN 95
       USE MODEL
 
 C-----(SYSTEM)------------------------------------------------
-C     NODES, EDGES, CONNECTIVITY
-      INTEGER N, M, z
+C     NODES, CONNECTIVITY
+      INTEGER N, z
 C     R (:= m TROTTER INDEX)
       INTEGER R
 C     +1 -1 EDGES RATIO (1 => ALL +1), (0 => ALL -1)
@@ -73,7 +73,6 @@ C***********************************************************************
 C     READ SIMULATION VARIABLES FROM INPUT FILE
       CALL READ_INPUT(N,z,R,TEMP_SIZE,TEMP_LIST,H_SIZE,H_LIST,
      . p_SIZE,p_LIST,C,MCINI,NSEEDS,SC,zip_size,TAU)
-      M = z*N/2
       MCTOT = MCINI + C*SC/2
 C     ALLOCATION
       ALLOCATE(decimal1(1:N/zip_size))
@@ -117,11 +116,14 @@ C     FOR ALL p VALUES
 C     FOR ALL SEEDS
       DO SEED = SEEDini,SEEDini+NSEEDS-1
       WRITE(str4,'(i3)') SEED
-      CALL setr1279(SEED)
 
 C***********************************************************************
-C     INITIAL RANDOM SYSTEM (GRAPH+COUPLINGS)
-      CALL IRS(N,M,p,NBR,INBR,JJ)
+C     INITIAL RANDOM GRAPH
+      CALL setr1279(SEED)
+      CALL IRG(N,z,NBR,INBR,JJ)
+C     INITIAL RANDOM COUPLINGS
+      CALL setr1279(SEED)
+      CALL RCA(N,p,NBR,INBR,JJ)
 C***********************************************************************
 C     SPIN CONFIGURATION FILE FOR EACH p VALUE AND SEED
       OPEN(UNIT=1,FILE='results/sample/T'//str1//'_Γ'//str2//

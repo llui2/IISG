@@ -76,102 +76,18 @@ C     READ INPUT FILE
 C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
-C     RANDOM ERDÖS-RÉNYI GRAPH WITH RANDOM COUPLINGS GENERATOR
-      SUBROUTINE IRS(N,M,p,NBR,INBR,JJ)
-C     THIS SUBROUTINE GENERATES A RANDOM ERDÖS-RÉNYI GRAPH WITH p*M EDGES
-C     WITH A WEIGHT OF 1 AND (1-p)*M EDGES WITH A WEIGHT OF 1 AND SAVES
-C     IT IN THE NBR, INBR AND JJ ARRAYS.
-
-      INTEGER N, M
-      REAL*8 p
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR(:)
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
-
-      INTEGER i, j, k
-      EXTERNAL r1279
-      INTEGER edges_p, edges_n
-
-      edges_p = INT(p*M)
-      edges_n = INT((1-p)*M)
-
-      IF (edges_p+edges_n.NE.M) THEN
-            PRINT*, 'ERROR: p VALUE NOT VALID'
-            STOP
-      END IF
-      IF (p.GT.1.OR.p.LT.0) THEN
-            PRINT*, 'ERROR: p VALUE NOT VALID'
-            STOP
-      END IF
-
-      ALLOCATE(NBR(N))
-      ALLOCATE(INBR(N))
-      ALLOCATE(JJ(N))
-
-      DO i = 1,N
-            ALLOCATE(NBR(i)%v(0))
-            ALLOCATE(JJ(i)%v(0))
-      END DO
-
-C     GENERATE M/2 EDGES OF WEIGHT 1
-      k = 0
-      DO WHILE(k<edges_p)
-            i = INT(r1279()*N) + 1 
-            j = INT(r1279()*N) + 1 
-
-            IF ((ANY(NBR(i)%v == j).EQV..FALSE.).AND.(i.NE.j)) THEN
-                  CALL ADDTOLIST(NBR(i)%v,j)
-                  CALL ADDTOLIST(NBR(j)%v,i)
-                  CALL ADDTOLIST(JJ(i)%v,1)
-                  CALL ADDTOLIST(JJ(j)%v,1)
-                  k = k + 1 
-            END IF
-      END DO
-      
-C     GENERATE M/2 EDGES OF WEIGHT -1 
-      k = 0
-      DO WHILE(k<edges_n)
-            i = INT(r1279()*N) + 1 
-            j = INT(r1279()*N) + 1 
-
-            IF ((ANY(NBR(i)%v == j).EQV..FALSE.).AND.(i.NE.j)) THEN    
-                  CALL ADDTOLIST(NBR(i)%v,j)
-                  CALL ADDTOLIST(NBR(j)%v,i)
-                  CALL ADDTOLIST(JJ(i)%v,-1)
-                  CALL ADDTOLIST(JJ(j)%v,-1)
-                  k = k + 1 
-            END IF
-      END DO
-
-C	INBR GENERATION
-      DO i = 1,N
-            ALLOCATE(INBR(i)%v(SIZE(NBR(i)%v)))
-      END DO
-      DO i = 1,N 
-            DO j = 1,SIZE(NBR(i)%v)
-                  DO k = 1,SIZE(NBR(NBR(i)%v(j))%v)
-                        IF ((NBR(NBR(i)%v(j))%v(k).EQ.i)) THEN
-                              INBR(i)%v(j) = k
-                        END IF
-                  END DO
-            END DO 
-      END DO
-
-      RETURN
-      END SUBROUTINE IRS
-C-----------------------------------------------------------------------
-
-C-----------------------------------------------------------------------
 C     RANDOM ERDÖS-RÉNYI GRAPH WITHOUT COUPLINGS GENERATOR
-      SUBROUTINE IRG(N,M,NBR,INBR,JJ) ! Initial Random Graph
-C     THIS SUBROUTINE GENERATES A RANDOM ERDÖS-RÉNYI GRAPH WITH M EDGES
+      SUBROUTINE IRG(N,z,NBR,INBR,JJ) ! Initial Random Graph
+C     THIS SUBROUTINE GENERATES A RANDOM ERDÖS-RÉNYI GRAPH WITH p = z/(N-1) 
+C     (THIS p IS NOT THE SAME AS THE p IN THE COUPLING ASSIGNMENT!)
 C     AND SAVES IT IN THE NBR, INBR AND JJ ARRAYS.
 
-      INTEGER N, M
+      INTEGER N, z
       TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
       
+      REAL*8 p
       INTEGER i, j, k
       EXTERNAL r1279
 
@@ -184,18 +100,18 @@ C     AND SAVES IT IN THE NBR, INBR AND JJ ARRAYS.
             ALLOCATE(JJ(i)%v(0))
       ENDDO
 
-C     GENERATE M EDGES OF WEIGHT 0
-      k = 0
-      DO WHILE(k<M)
-            i = INT(r1279()*N) + 1 
-            j = INT(r1279()*N) + 1 
-            IF ((ANY(NBR(i)%v == j).EQV..FALSE.).AND.(i.NE.j)) THEN
-                  CALL ADDTOLIST(NBR(i)%v,j)
-                  CALL ADDTOLIST(NBR(j)%v,i)
-                  CALL ADDTOLIST(JJ(i)%v,0)
-                  CALL ADDTOLIST(JJ(j)%v,0)
-                  k = k + 1
-            END IF
+      p = REAL(z)/REAL(N-1)
+
+C     GENERATE EDGES WITH PROBABILITY p
+      DO i = 1,N
+            DO j = i+1,N
+                  IF (r1279().LT.p) THEN
+                        CALL ADDTOLIST(NBR(i)%v, j)
+                        CALL ADDTOLIST(NBR(j)%v, i)
+                        CALL ADDTOLIST(JJ(i)%v,0)
+                        CALL ADDTOLIST(JJ(j)%v,0)
+                  END IF
+            END DO
       END DO
 
 C	INBR GENERATION
@@ -214,63 +130,108 @@ C	INBR GENERATION
 
       RETURN
       END SUBROUTINE IRG
-
 C-----------------------------------------------------------------------
 
-C------------------------------------------------------------------
+C-----------------------------------------------------------------------
 C     RANDOM COUPLING ASSIGMENT
-      SUBROUTINE RCA(N,M,p,NBR,INBR,JJ)
-C     THIS SUBROUTINE ASSIGNS TO THE GRAPH p*M EDGES WITH
-C     A WEIGHT OF 1 AND (1-p)*M EDGES WITH A WEIGHT OF -1
-C     AND SAVES IT IN THE JJ ARRAY.
+      SUBROUTINE RCA(N,p,NBR,INBR,JJ)
+C     THIS SUBROUTINE ASSIGNS TO THE GRAPH EDGES A RANDOM COUPLING
+C     OF 1 OR -1 WITH PROBABILITY p AND (1-p) RESPECTIVELY.
 
-      INTEGER N, M
+      INTEGER N
       REAL*8 p
       TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
 
-      INTEGER i, j, k
+      INTEGER i, j
       EXTERNAL r1279
-      INTEGER edges_p, edges_n
 
-      edges_p = INT(p*M)
-      edges_n = INT((1-p)*M)
-
-      IF (edges_p+edges_n.NE.M) THEN
-            WRITE(*,*)
-            PRINT*, 'GRAPH PROBLEM: p value not possible'
-            WRITE(*,*)
-            STOP
-      END IF
-
-C     GENERATE M*p EDGES OF WEIGHT 1
-      k = 0
-      DO WHILE(k<edges_p)
-1           i = INT(r1279()*N) + 1 
-            j = INT(r1279()*SIZE(JJ(i)%v)) + 1 
-            IF (SIZE(NBR(i)%v).EQ.0) GO TO 1
-            IF (JJ(i)%v(j).EQ.0) THEN
-                  JJ(i)%v(j) = 1
-                  JJ(NBR(i)%v(j))%v(INBR(i)%v(j)) = 1
-                  k = k + 1 
-            END IF
-      END DO
-
-C     GENERATE M*(1-p) EDGES OF WEIGHT -1
-      k = 0
-      DO WHILE(k<edges_n)
-2           i = INT(r1279()*N) + 1 
-            j = INT(r1279()*SIZE(JJ(i)%v)) + 1 
-            IF (SIZE(NBR(i)%v).EQ.0) GO TO 2
-            IF (JJ(i)%v(j).EQ.0) THEN
-                  JJ(i)%v(j) = -1
-                  JJ(NBR(i)%v(j))%v(INBR(i)%v(j)) = -1
-                  k = k + 1 
-            END IF
+C     GENERATE COUPLINGS OF 1 WITH PROBABILITY p AND -1 WITH (1-p)
+      DO i = 1, N
+            DO j = 1, SIZE(NBR(i)%v)
+                  IF (r1279().LT.p) THEN
+                        JJ(i)%v(j) = 1
+                        JJ(NBR(i)%v(j))%v(INBR(i)%v(j)) = 1
+                  ELSE
+                        JJ(i)%v(j) = -1
+                        JJ(NBR(i)%v(j))%v(INBR(i)%v(j)) = -1
+                  END IF
+            END DO
       END DO
 
       END SUBROUTINE RCA
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+C     SHUFFLE COUPLINGS
+      SUBROUTINE SHUFFLE(N,M,NBR,INBR,JJ)
+C     THIS SUBROUTINE SHUFFLES THE COUPLINGS OF THE GRAPH 
+
+      INTEGER N, M
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
+
+      LOGICAL change
+      INTEGER i1, i2, i3, i4
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: newNBR(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: newINBR(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: newJJ(:)
+
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR_0(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR_0(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ_0(:)
+      REAL*8 g
+      INTEGER iter
+
+      EXTERNAL r1279
+
+      ALLOCATE(newNBR(N))
+      ALLOCATE(newINBR(N))
+      ALLOCATE(newJJ(N))
+      DO i = 1,N
+            ALLOCATE(newNBR(i)%v(SIZE(NBR(i)%v)))
+            ALLOCATE(newINBR(i)%v(SIZE(NBR(i)%v)))
+            ALLOCATE(newJJ(i)%v(SIZE(NBR(i)%v)))
+      END DO
+      ALLOCATE(NBR_0(N))
+      ALLOCATE(INBR_0(N))
+      ALLOCATE(JJ_0(N))
+      DO i = 1,N
+            ALLOCATE(NBR_0(i)%v(SIZE(NBR(i)%v)))
+            ALLOCATE(INBR_0(i)%v(SIZE(NBR(i)%v)))
+            ALLOCATE(JJ_0(i)%v(SIZE(NBR(i)%v)))
+      END DO
+
+      newNBR = NBR
+      newINBR = INBR
+      newJJ = JJ
+
+      NBR_0 = NBR
+      INBR_0 = INBR
+      JJ_0 = JJ
+
+      g = GAMMAA(N,M,NBR,JJ,NBR_0,JJ_0)
+
+      iter = 0 ! ITERATION COUNTER TO AVOID INFINITE SHUFFLING
+      DO WHILE ((g.LT.0.8).OR.(iter.LT.1e5))
+      change = .FALSE.
+      DO WHILE (change.EQV..FALSE.)
+      CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
+     .              i1,i2,i3,i4)
+!       CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+!      .              i1,i2,i3,i4)
+      END DO
+      NBR = newNBR
+      INBR = newINBR
+      JJ = newJJ
+      g = GAMMAA(N,M,newNBR,newJJ,NBR_0,JJ_0)
+      iter = iter + 1
+      END DO
+
+      RETURN
+      END SUBROUTINE SHUFFLE
 C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
