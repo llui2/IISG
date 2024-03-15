@@ -24,6 +24,6 @@ do
     # Send Simulation
     qsub $jobfile
 
-    sleep 2
+    sleep 1
     
 done
