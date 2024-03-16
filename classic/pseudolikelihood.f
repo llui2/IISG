@@ -61,7 +61,6 @@ C-----(DUMMY)-------------------------------------------------
       REAL*8, ALLOCATABLE:: funct(:,:)
       INTEGER zmax
       REAL*8 H !TRANSVERSE FIELD (EQUAL TO 0 IN CLASSIC MODEL)
-      INTEGER M_i ! node i degree
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       INTEGER SC !NOT USED IN THIS PROGRAM
       INTEGER H_SIZE !NOT USED IN THIS PROGRAM
@@ -129,8 +128,9 @@ C***********************************************************************
 C     COMPUTE THE NUMBER OF EDGES OF THE GRAPH
       M = 0
       DO i = 1, N
-            M_i = SIZE(NBR_0(i)%v)
-            M = M + M_i
+            IF (SIZE(NBR_0(i)%v).NE.0) THEN
+                  M = M + SIZE(NBR_0(i)%v)
+            END IF
       END DO
       M = M/2
 C***********************************************************************

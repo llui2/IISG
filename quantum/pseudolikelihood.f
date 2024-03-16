@@ -64,7 +64,6 @@ C-----(DUMMY)-------------------------------------------------
       INTEGER, ALLOCATABLE:: LAMBDA(:,:,:), SIGMA(:,:,:)
       REAL*8, ALLOCATABLE:: FUNCT(:,:,:)
       INTEGER zmax
-      INTEGER M_i ! node i degree
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       INTEGER SC !NOT USED IN THIS PROGRAM
       INTEGER MCINI !NOT USED IN THIS PROGRAM
@@ -131,8 +130,9 @@ C***********************************************************************
 C     COMPUTE THE NUMBER OF EDGES OF THE GRAPH
       M = 0
       DO i = 1, N
-            M_i = SIZE(NBR_0(i)%v)
-            M = M + M_i
+            IF (SIZE(NBR_0(i)%v).NE.0) THEN
+                  M = M + SIZE(NBR_0(i)%v)
+            END IF
       END DO
       M = M/2
 C***********************************************************************
