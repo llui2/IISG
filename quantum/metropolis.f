@@ -120,7 +120,7 @@ C     FOR ALL SEEDS
 C***********************************************************************
 C     INITIAL RANDOM GRAPH
       CALL setr1279(SEED)
-      CALL IRG(N,z,NBR,INBR,JJ)
+      CALL IRG(N,z,NBR,INBR,JJ,M)
 C     INITIAL RANDOM COUPLINGS
       CALL setr1279(SEED)
       CALL RCA(N,p,NBR,INBR,JJ)

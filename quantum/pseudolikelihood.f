@@ -122,19 +122,10 @@ C     FOR ALL SEEDS
 C***********************************************************************
 C     INITIAL RANODM GRAPH (THE SAME AS THE ORIGINAL ONE)
       CALL setr1279(SEED)
-      CALL IRG(N,z,NBR_0,INBR_0,JJ_0)
+      CALL IRG(N,z,NBR_0,INBR_0,JJ_0,M)
 C     INITIAL RANDOM COUPLINGS
       CALL setr1279(SEED)
       CALL RCA(N,p,NBR_0,INBR_0,JJ_0)
-C***********************************************************************
-C     COMPUTE THE NUMBER OF EDGES OF THE GRAPH
-      M = 0
-      DO i = 1, N
-            IF (SIZE(NBR_0(i)%v).NE.0) THEN
-                  M = M + SIZE(NBR_0(i)%v)
-            END IF
-      END DO
-      M = M/2
 C***********************************************************************
 C     READ THE SAMPLE
       OPEN(UNIT=1,FILE='results/sample/T'//str1//'_Γ'//str2//

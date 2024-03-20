@@ -73,7 +73,7 @@ C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
 C     RANDOM ERDÖS-RÉNYI GRAPH WITHOUT COUPLINGS GENERATOR
-      SUBROUTINE IRG(N,z,NBR,INBR,JJ) ! Initial Random Graph
+      SUBROUTINE IRG(N,z,NBR,INBR,JJ,M) ! Initial Random Graph
 C     THIS SUBROUTINE GENERATES A RANDOM ERDÖS-RÉNYI GRAPH WITH p = z/(N-1) 
 C     (THIS p IS NOT THE SAME AS THE p IN THE COUPLING ASSIGNMENT!)
 C     AND SAVES IT IN THE NBR, INBR AND JJ ARRAYS.
@@ -82,6 +82,7 @@ C     AND SAVES IT IN THE NBR, INBR AND JJ ARRAYS.
       TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
+      INTEGER M
       
       REAL*8 p
       INTEGER i, j, k
@@ -98,6 +99,7 @@ C     AND SAVES IT IN THE NBR, INBR AND JJ ARRAYS.
 
       p = REAL(z)/REAL(N-1)
 
+      M = 0
 C     GENERATE EDGES WITH PROBABILITY p
       DO i = 1,N
             DO j = i+1,N
@@ -106,6 +108,7 @@ C     GENERATE EDGES WITH PROBABILITY p
                         CALL ADDTOLIST(NBR(j)%v, i)
                         CALL ADDTOLIST(JJ(i)%v,0)
                         CALL ADDTOLIST(JJ(j)%v,0)
+                        M = M + 1
                   END IF
             END DO
       END DO

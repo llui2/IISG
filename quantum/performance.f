@@ -9,8 +9,8 @@ C     FORTRAN 95
       USE MODEL
 
 C-----(SYSTEM)------------------------------------------------
-C     NODES, EDGES, CONNECTIVITY
-      INTEGER N, M, z
+C     NODES, CONNECTIVITY
+      INTEGER N, z
 C     +1 -1 EDGES RATIO (1 => ALL +1), (0 => ALL -1)
       REAL*8 p
 C     TEMPERATURE (TEMP := k_B·T)
@@ -49,7 +49,6 @@ C***********************************************************************
 C     READ SIMULATION VARIABLES FROM INPUT FILE
       CALL READ_INPUT(N,z,R,TEMP_SIZE,TEMP_LIST,H_SIZE,H_LIST,
      . p_SIZE,p_LIST,C,MCINI,NSEEDS,SC,zip_size,TAU)
-      M = z*N/2
       zmax = N-1
 C***********************************************************************
       CALL SYSTEM('mkdir -p results/data/')
