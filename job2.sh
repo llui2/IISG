@@ -12,14 +12,16 @@
 #$ -o output-$JOB_NAME-$JOB_ID.log
 #$ -e error-$JOB_NAME-$JOB_ID.err
 
+mkdir $TMPDIR/$JOB_NAME
+
 # Now comes the commands to be executed
 # Copy files to the local disk on the node
-cp input.txt $TMPDIR/
-cp -r quantum $TMPDIR/
-cp -r r1279 $TMPDIR/
+cp input.txt $TMPDIR/$JOB_NAME
+cp -r quantum $TMPDIR/$JOB_NAME
+cp -r r1279 $TMPDIR/$JOB_NAME
 
 # Change to the execution directory
-cd $TMPDIR/
+cd $TMPDIR/$JOB_NAME
 
 # Compile the code
 # SAMPLE
