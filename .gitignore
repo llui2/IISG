@@ -11,3 +11,4 @@ error-*
 output-*
 *.zip
 TODO.txt
+env

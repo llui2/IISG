@@ -212,7 +212,7 @@ C     THIS SUBROUTINE SHUFFLES THE COUPLINGS OF THE GRAPH
 
       g = GAMMAA(N,M,NBR,JJ,NBR_0,JJ_0)
 
-      DO WHILE ((g.LT.0.8).OR.(iter.LT.1e5))
+      DO WHILE (g.LT.0.8)
       change = .FALSE.
       DO WHILE (change.EQV..FALSE.)
       CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
