@@ -216,7 +216,7 @@ C     THIS SUBROUTINE SHUFFLES THE COUPLINGS OF THE GRAPH
 
       g = GAMMAA(N,M,NBR,JJ,NBR_0,JJ_0)
 
-      DO WHILE (g.LT.0.8)
+      DO WHILE (g.LT.0.9)
       change = .FALSE.
       DO WHILE (change.EQV..FALSE.)
       CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
@@ -1189,24 +1189,35 @@ C     THIS FUNCTION CALCULATES THE GAMMA BETWEEN JJ AND JJ_0
       TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ_0(:)
 
       REAL*8 SUM
-      INTEGER ip
+      INTEGER ip1, ip2
 
       SUM = 0.d0
       DO i = 1,N
+
+            DO k = 1,SIZE(NBR(i)%v)
+                  IF (i.LT.NBR(i)%v(k)) THEN
+                        ip2 = FLOC(NBR_0(i)%v,NBR(i)%v(k))
+                        IF (ip2.EQ.0) THEN
+                              SUM = SUM + (JJ(i)%v(k))**2
+                        END IF
+                  END IF
+            END DO
+
             DO k = 1,SIZE(NBR_0(i)%v)
                   IF (i.LT.NBR_0(i)%v(k)) THEN
-                  ip = FLOC(NBR(i)%v,NBR_0(i)%v(k))
-                  IF (ip.EQ.0) THEN
+                  ip1 = FLOC(NBR(i)%v,NBR_0(i)%v(k))
+                  IF (ip1.EQ.0) THEN
                         SUM = SUM + (JJ_0(i)%v(k))**2
                   END IF
-                  IF (ip.ne.0) THEN
-                        SUM = SUM + (JJ_0(i)%v(k)-JJ(i)%v(ip))**2
+                  IF (ip1.ne.0) THEN
+                        SUM = SUM + (JJ_0(i)%v(k)-JJ(i)%v(ip1))**2
                   END IF
                   END IF
             END DO
+
       END DO
 
-      GAMMAA = SUM/M
+      GAMMAA = SUM/M/2
       RETURN
       END FUNCTION GAMMAA
 C-----------------------------------------------------------------------
