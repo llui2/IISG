@@ -64,6 +64,7 @@ C-----(DUMMY)-------------------------------------------------
       INTEGER, ALLOCATABLE:: LAMBDA(:,:,:), SIGMA(:,:,:)
       REAL*8, ALLOCATABLE:: FUNCT(:,:,:)
       INTEGER zmax
+      INTEGER NP, NM !NUMBER OF POSITIVE AND NEGATIVE EDGES
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       INTEGER SC !NOT USED IN THIS PROGRAM
       INTEGER MCINI !NOT USED IN THIS PROGRAM
@@ -109,6 +110,9 @@ C     FOR ALL p VALUES
       WRITE(str,'(f4.2)') p
       str3 = str(1:1)//str(3:4)
 
+C     CREATE DIRECTORY TO SAVE THE GRAPHS AND COUPLINGS FOUND WITH THE ALGORITHM
+      CALL SYSTEM('mkdir -p results/graphs/pl/p_'//str3)
+
 C***********************************************************************
       CALL SYSTEM('mkdir -p results/accuracy/T'//str1//'_Γ'//str2)
       OPEN(UNIT=10,FILE='results/accuracy/T'//str1//'_Γ'//str2//
@@ -144,12 +148,10 @@ C     INITIAL FICTICIOUS TEMPERATURE
       TEMP_F = -LOG(0.5d0*(1+TANH(1.D0/TEMP)))/z
       TF_STEP = TEMP_F/TAU
 C***********************************************************************
-C     INITIAL RANODM GRAPH
-      NBR = NBR_0
-      INBR = INBR_0
-      JJ = JJ_0
-C     SHUFFLE THE GRAPH
-      CALL SHUFFLE(N,M,NBR,INBR,JJ)
+C     GET THE NUMBER OF POSITIVE AND NEGATIVE EDGES
+      CALL GETCOUPLINGS(N,NBR_0,JJ_0,NP,NM)
+C     INITIAL RANODM GRAPH (WITH THE SAME COUPLINGS AS THE ORIGINAL ONE)
+      CALL IRS(N,NP,NM,NBR,INBR,JJ)
 C***********************************************************************
       CALL CLASS_LAMBDA(C,R,N,D,NBR,JJ,LAMBDA)
       CALL CLASS_SIGMA(C,R,N,D,SIGMA)
@@ -171,6 +173,29 @@ C     MONTE-CARLO SIMULATION
       ENDDO
 C***********************************************************************
       WRITE(10,*) SEED, GAMMAA(N,M,NBR,JJ,NBR_0,JJ_0)
+
+C     SAVE GRAPH AND COUPLINGS
+      IF (ITEMP==1) THEN
+      OPEN(UNIT=55,FILE='results/graphs/pl/p_'//str3
+     . //'/'//str4//'.dat')
+      WRITE(55,'(A,X,A,2X,A)') "#","N","z"
+      WRITE(55,'(I3,2X,I1)') N, z
+      WRITE(55,'(A)') "# NBR"
+      DO i = 1, N
+            DO j = 1, SIZE(NBR(i)%v)
+                  WRITE(55, '(I3,2X)', advance='no') NBR(i)%v(j)
+            END DO
+            WRITE(55, *)
+      END DO
+      WRITE(55,'(A)') "# JJ"
+      DO i = 1, N
+            DO j = 1, SIZE(JJ(i)%v)
+                  WRITE(55, '(I3,2X)', advance='no') JJ(i)%v(j)
+            END DO
+            WRITE(55, *)
+      END DO
+      CLOSE(55)
+      END IF
 C***********************************************************************
       DO i = 1,N
             DEALLOCATE(NBR(i)%v)

@@ -9,8 +9,8 @@ C     FORTRAN 95
       USE MODEL
 
 C-----(SYSTEM)------------------------------------------------
-C     NODES, CONNECTIVITY
-      INTEGER N, z
+C     NODES, EDGES, CONNECTIVITY
+      INTEGER N, M, z
 C     R (:= m TROTTER INDEX)
       INTEGER R
 C     +1 -1 EDGES RATIO (1 => ALL +1), (0 => ALL -1)
@@ -113,6 +113,9 @@ C     FOR ALL p VALUES
       WRITE(str,'(f4.2)') p
       str3 = str(1:1)//str(3:4)
 
+C     CREATE DIRECTORY TO SAVE THE GRAPHS AND COUPLINGS
+      CALL SYSTEM('mkdir -p results/graphs/original/p_'//str3)
+
 C     FOR ALL SEEDS
       DO SEED = SEEDini,SEEDini+NSEEDS-1
       WRITE(str4,'(i3)') SEED
@@ -124,6 +127,29 @@ C     INITIAL RANDOM GRAPH
 C     INITIAL RANDOM COUPLINGS
       CALL setr1279(SEED)
       CALL RCA(N,p,NBR,INBR,JJ)
+C***********************************************************************
+C     SAVE GRAPH AND COUPLINGS
+      IF (ITEMP==1) THEN
+      OPEN(UNIT=55,FILE='results/graphs/original/p_'//str3
+     . //'/'//str4//'.dat')
+      WRITE(55,'(A,X,A,2X,A)') "#","N","z"
+      WRITE(55,'(I3,2X,I1)') N, z
+      WRITE(55,'(A)') "# NBR"
+      DO i = 1, N
+            DO j = 1, SIZE(NBR(i)%v)
+                  WRITE(55, '(I3,2X)', advance='no') NBR(i)%v(j)
+            END DO
+            WRITE(55, *)
+      END DO
+      WRITE(55,'(A)') "# JJ"
+      DO i = 1, N
+            DO j = 1, SIZE(JJ(i)%v)
+                  WRITE(55, '(I3,2X)', advance='no') JJ(i)%v(j)
+            END DO
+            WRITE(55, *)
+      END DO
+      CLOSE(55)
+      END IF
 C***********************************************************************
 C     SPIN CONFIGURATION FILE FOR EACH p VALUE AND SEED
       OPEN(UNIT=1,FILE='results/sample/T'//str1//'_Γ'//str2//

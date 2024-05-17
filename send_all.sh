@@ -16,7 +16,7 @@ do
     sed -i "7s/.*/$j/" input.txt
     
     # change the job.sh file line 4 to the current job name
-    sed -i "4s/.*/#$ -N N200-H$H-T$j/" $jobfile
+    sed -i "4s/.*/#$ -N H$H-T$j/" $jobfile
 
     # print the line 7 of the input.txt file
     Tinput=$(sed -n '7p' input.txt)

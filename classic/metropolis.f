@@ -9,8 +9,8 @@ C     FORTRAN 95
       USE MODEL
 
 C-----(SYSTEM)------------------------------------------------
-C     NODES, CONNECTIVITY
-      INTEGER N, z
+C     NODES, EDGES, CONNECTIVITY
+      INTEGER N, M, z
 C     +1 -1 EDGES RATIO (1 => ALL +1), (0 => ALL -1)
       REAL*8 p
 C     TEMPERATURE (TEMP := k_B·T)
@@ -112,7 +112,7 @@ C     FOR ALL p VALUES
       str3 = str(1:1)//str(3:4)
 
 C     CREATE DIRECTORY TO SAVE THE GRAPHS AND COUPLINGS
-      CALL SYSTEM('mkdir -p results/graphs/p_'//str3)
+      CALL SYSTEM('mkdir -p results/graphs/original/p_'//str3)
 
 C     FOR ALL SEEDS
       DO SEED = SEEDini,SEEDini+NSEEDS-1
@@ -128,7 +128,8 @@ C     INITIAL RANDOM COUPLINGS
 C***********************************************************************
 C     SAVE GRAPH AND COUPLINGS
       IF (ITEMP==1) THEN
-      OPEN(UNIT=55,FILE='results/graphs/p_'//str3//'/'//str4//'.dat')
+      OPEN(UNIT=55,FILE='results/graphs/original/p_'//str3
+     . //'/'//str4//'.dat')
       WRITE(55,'(A,X,A,2X,A)') "#","N","z"
       WRITE(55,'(I3,2X,I1)') N, z
       WRITE(55,'(A)') "# NBR"

@@ -167,71 +167,105 @@ C     GENERATE COUPLINGS OF 1 WITH PROBABILITY p AND -1 WITH (1-p)
 C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
-C     SHUFFLE COUPLINGS
-      SUBROUTINE SHUFFLE(N,M,NBR,INBR,JJ)
-C     THIS SUBROUTINE SHUFFLES THE COUPLINGS OF THE GRAPH 
+C     GET NUMBER OF +1 AND -1 COUPLINGS
+      SUBROUTINE GETCOUPLINGS(N,NBR,JJ,NP,NM)
+C     THIS SUBROUTINE CALCULATES THE NUMBER OF +1 AND -1 COUPLINGS
+      
+      INTEGER N
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
 
-      INTEGER N, M
+      INTEGER i, j
+      INTEGER NP, NM
+
+      NP = 0
+      NM = 0
+
+      DO i = 1, N
+            DO j = 1, SIZE(NBR(i)%v)
+                  IF (JJ(i)%v(j).EQ.1) THEN
+                        NP = NP + 1
+                  ELSE
+                        NM = NM + 1
+                  END IF
+            END DO
+      END DO
+
+      NP = NP/2
+      NM = NM/2
+
+      RETURN
+      END SUBROUTINE GETCOUPLINGS
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+C     RANDOM GRAPH WITH COUPLINGS GENERATOR
+      SUBROUTINE IRS(N,NP,NM,NBR,INBR,JJ)
+C     THIS SUBROUTINE GENERATES A RANDOM GRAPH WITH NP EDGES WITH
+C     A WEIGHT OF 1 AND NM EDGES WITH A WEIGHT OF -1
+C     AND SAVES IT IN THE NBR, INBR AND JJ ARRAYS.
+
+      INTEGER i, j, k
+      INTEGER N, NP, NM
+      EXTERNAL r1279
+
       TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR(:)
       TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
 
-      LOGICAL change
-      INTEGER i1, i2, i3, i4
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: newNBR(:)
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: newINBR(:)
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: newJJ(:)
+      ALLOCATE(NBR(N))
+      ALLOCATE(INBR(N))
+      ALLOCATE(JJ(N))
 
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR_0(:)
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR_0(:)
-      TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ_0(:)
-      REAL*8 g
-
-      EXTERNAL r1279
-
-      ALLOCATE(newNBR(N))
-      ALLOCATE(newINBR(N))
-      ALLOCATE(newJJ(N))
       DO i = 1,N
-            ALLOCATE(newNBR(i)%v(SIZE(NBR(i)%v)))
-            ALLOCATE(newINBR(i)%v(SIZE(NBR(i)%v)))
-            ALLOCATE(newJJ(i)%v(SIZE(NBR(i)%v)))
+            ALLOCATE(NBR(i)%v(0))
+            ALLOCATE(JJ(i)%v(0))
       END DO
-      ALLOCATE(NBR_0(N))
-      ALLOCATE(INBR_0(N))
-      ALLOCATE(JJ_0(N))
+
+C     GENERATE NP EDGES OF WEIGHT 1
+      k = 0
+      DO WHILE(k<NP)
+            i = INT(r1279()*N) + 1 
+            j = INT(r1279()*N) + 1 
+            IF ((ANY(NBR(i)%v == j).EQV..FALSE.).AND.(i.NE.j)) THEN
+                  CALL ADDTOLIST(NBR(i)%v,j)
+                  CALL ADDTOLIST(NBR(j)%v,i)
+                  CALL ADDTOLIST(JJ(i)%v,1)
+                  CALL ADDTOLIST(JJ(j)%v,1)
+                  k = k + 1 
+            END IF
+      END DO
+       
+C     GENERATE NM EDGES OF WEIGHT -1 
+      k = 0
+      DO WHILE(k<NM)
+            i = INT(r1279()*N) + 1 
+            j = INT(r1279()*N) + 1 
+            IF ((ANY(NBR(i)%v == j).EQV..FALSE.).AND.(i.NE.j)) THEN    
+                  CALL ADDTOLIST(NBR(i)%v,j)
+                  CALL ADDTOLIST(NBR(j)%v,i)
+                  CALL ADDTOLIST(JJ(i)%v,-1)
+                  CALL ADDTOLIST(JJ(j)%v,-1)
+                  k = k + 1 
+            END IF
+      END DO
+
+C	INBR GENERATION
       DO i = 1,N
-            ALLOCATE(NBR_0(i)%v(SIZE(NBR(i)%v)))
-            ALLOCATE(INBR_0(i)%v(SIZE(NBR(i)%v)))
-            ALLOCATE(JJ_0(i)%v(SIZE(NBR(i)%v)))
+            ALLOCATE(INBR(i)%v(SIZE(NBR(i)%v)))
       END DO
-
-      newNBR = NBR
-      newINBR = INBR
-      newJJ = JJ
-
-      NBR_0 = NBR
-      INBR_0 = INBR
-      JJ_0 = JJ
-
-      g = GAMMAA(N,M,NBR,JJ,NBR_0,JJ_0)
-
-      DO WHILE (g.LT.0.9)
-      change = .FALSE.
-      DO WHILE (change.EQV..FALSE.)
-      CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
-     .              i1,i2,i3,i4)
-!       CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
-!      .              i1,i2,i3,i4)
-      END DO
-      NBR = newNBR
-      INBR = newINBR
-      JJ = newJJ
-      g = GAMMAA(N,M,newNBR,newJJ,NBR_0,JJ_0)
+      DO i = 1,N 
+            DO j = 1,SIZE(NBR(i)%v)
+                  DO k = 1,SIZE(NBR(NBR(i)%v(j))%v)
+                        IF ((NBR(NBR(i)%v(j))%v(k).EQ.i)) THEN
+                              INBR(i)%v(j) = k
+                        END IF
+                  END DO
+            END DO 
       END DO
 
       RETURN
-      END SUBROUTINE SHUFFLE
+      END SUBROUTINE IRS
 C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
