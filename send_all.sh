@@ -6,7 +6,7 @@ Temp="1.00 1.20 1.40 1.60 1.80 2.00 2.20 2.40 2.60 2.80 3.00 3.20 3.40 3.60 3.80
 
 H=$(sed -n '10p' input.txt)
 
-jobfile="job2.sh"
+jobfile="job1.sh"
 
 for j in $Temp
 do
@@ -16,7 +16,7 @@ do
     sed -i "7s/.*/$j/" input.txt
     
     # change the job.sh file line 4 to the current job name
-    sed -i "4s/.*/#$ -N H$H-T$j/" $jobfile
+    sed -i "4s/.*/#$ -N H$H-T$j-F/" $jobfile
 
     # print the line 7 of the input.txt file
     Tinput=$(sed -n '7p' input.txt)

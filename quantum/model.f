@@ -200,6 +200,51 @@ C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
 C     RANDOM GRAPH WITH COUPLINGS GENERATOR
+      SUBROUTINE RCS(N,NP,NBR,INBR,JJ)
+C     THIS SUBROUTINE GENERATES ASSIGNS TO THE GRAPH EDGES A RANDOM COUPLING
+C     OF NP EDGES WITH A WEIGHT OF 1 AND THE REST WITH A WEIGHT OF -1.
+
+      INTEGER N, NP
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: NBR(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: INBR(:)
+      TYPE(MULTI_ARRAY),ALLOCATABLE:: JJ(:)
+
+      INTEGER i, j, k
+      EXTERNAL r1279
+
+C     ASSIGN NP EDGES OF WEIGHT 1
+      k = 0
+      DO WHILE(k<NP)
+
+            i = INT(r1279()*N) + 1 
+            DO WHILE(SIZE(NBR(i)%v) == 0)
+                  i = INT(r1279()*N) + 1 
+            END DO
+            j = INT(r1279()*SIZE(NBR(i)%v)) + 1             
+
+            IF (JJ(i)%v(j).EQ.0) THEN
+                  JJ(i)%v(j) = 1
+                  JJ(NBR(i)%v(j))%v(INBR(i)%v(j)) = 1
+                  k = k + 1
+            END IF
+      END DO
+
+C     ASSIGN THE REST OF THE EDGES WITH A WEIGHT OF -1
+      DO i = 1, N
+            DO k = 1, SIZE(NBR(i)%v)
+                  IF (JJ(i)%v(k).EQ.0) THEN
+                        JJ(i)%v(k) = -1
+                        JJ(NBR(i)%v(k))%v(INBR(i)%v(k)) = -1
+                  END IF
+            END DO
+      END DO
+
+      RETURN
+      END SUBROUTINE RCS
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+C     RANDOM GRAPH WITH COUPLINGS GENERATOR
       SUBROUTINE IRS(N,NP,NM,NBR,INBR,JJ)
 C     THIS SUBROUTINE GENERATES A RANDOM GRAPH WITH NP EDGES WITH
 C     A WEIGHT OF 1 AND NM EDGES WITH A WEIGHT OF -1
@@ -859,10 +904,10 @@ C     T' IS THE FICTICIOUS TEMPERATURE
 
 C     RANDOM PAIRWISE COUPLING CHANGE
       DO WHILE (change.EQV..FALSE.)
-      CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
-     .              i1,i2,i3,i4)
-!       CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+!       CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
 !      .              i1,i2,i3,i4)
+      CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+     .              i1,i2,i3,i4)
       END DO
 
 C     CALCULATE newLAMBDA
