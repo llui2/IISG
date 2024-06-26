@@ -152,12 +152,13 @@ C     GET THE NUMBER OF POSITIVE AND NEGATIVE EDGES
       CALL GETCOUPLINGS(N,NBR_0,JJ_0,NP,NM)
 
 C     UNKNOWN GRAPH
-      ! CALL IRS(N,NP,NM,NBR,INBR,JJ)
+      CALL setr1279(555)
+      CALL IRS(N,NP,NM,NBR,INBR,JJ)
 
 C     KNOWN GRAPH
-      CALL setr1279(SEED)
-      CALL IRG(N,z,NBR,INBR,JJ,M)
-      CALL RCS(N,NP,NBR,INBR,JJ)
+      ! CALL setr1279(SEED)
+      ! CALL IRG(N,z,NBR,INBR,JJ,M)
+      ! CALL RCS(N,NP,NBR,INBR,JJ)
 C***********************************************************************
       CALL CLASS_LAMBDA(C,R,N,D,NBR,JJ,LAMBDA)
       CALL CLASS_SIGMA(C,R,N,D,SIGMA)

@@ -904,10 +904,10 @@ C     T' IS THE FICTICIOUS TEMPERATURE
 
 C     RANDOM PAIRWISE COUPLING CHANGE
       DO WHILE (change.EQV..FALSE.)
-!       CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
-!      .              i1,i2,i3,i4)
-      CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+      CALL JJ_CHANGE(N,NBR,INBR,JJ,newNBR,newINBR,newJJ,change,
      .              i1,i2,i3,i4)
+!       CALL JJ_CHANGE_2(N,NBR,INBR,JJ,newJJ,change,
+!      .              i1,i2,i3,i4)
       END DO
 
 C     CALCULATE newLAMBDA
